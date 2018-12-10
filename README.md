@@ -2,6 +2,8 @@
 A PinballX Launcher app to specify parameters for the launched application. 
 Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled by your pinball cabinet contols
 
+![PinballX Launcher app](/images/launcher.png)
+
 ## Usage
 Place the executable in a directory you can remember and launch it once. Then close the application using esc key or alt + f4. 
 It should have created an ini file with the same name as the executable. By default it will generate settings for pinball FX3
@@ -12,9 +14,16 @@ keys in the ini file under the "SETTINGS" section. You'll need to supply the fol
 These should contain nummerical values of the Virtual Keys (VK_XXX KeyCodes) to be used. If you don't know these values you can use the supplied "Showkeys" tool
 to find out these numerical values. You basically start the showkeys app and then press the (same) buttons on your cabinet as the ones that
 you use to make selections in the PinballX frontend. Write each numerical value corresponding to the button (key) you pressed on a paper and
-add them the to ini file. You will also need to change your PinballX Settings to start this launcher app instead of Pinball FX3 and supply as 
+add them the to ini file. 
+
+![PinballX Settings](/images/showkeys.png)
+
+You will also need to change your PinballX Settings to start this launcher app instead of Pinball FX3 and supply as 
 the parameter needed to launch the selected table. The app expects only one parameter to be given and in Case of Pinball FX3 this is "-table_[TABLEFILE]" including the quotes. 
 Extra supplied parameters are ignored
+
+![PinballX Settings](/images/pinballxsetup.png)
+
 once you got everything setup this launcher app will be launched instead of Pinball FX3 directly and you can choose the settings using your cabinet buttons,
 the app will then launch pinball fx3 with the correct parameters for your selection. The app is by default setup to rotate itselve 270° that's
 basically how i think most cabinets are setup on the playfield, like landscape mode and letting pinballx rotate the screen. if your cabinet,
