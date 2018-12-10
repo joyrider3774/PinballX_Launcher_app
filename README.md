@@ -89,6 +89,3 @@ Specifies if the button is enabled / visible to be selected
 
 ### PARAM
 Specifies the parameter that will be used to launch your application when this button is selected.
-
-In the settings section you can also change the title shown in the application 
-
