@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{E819C658-4367-496C-ADDD-25168D8A6446}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="Launcher app\PinballFX3Launcher.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ShowKeys\Showkeys.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="PinballFX3Launcher">
+        <MSBuild Projects="Launcher app\PinballFX3Launcher.dproj"/>
+    </Target>
+    <Target Name="PinballFX3Launcher:Clean">
+        <MSBuild Projects="Launcher app\PinballFX3Launcher.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PinballFX3Launcher:Make">
+        <MSBuild Projects="Launcher app\PinballFX3Launcher.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Showkeys">
+        <MSBuild Projects="ShowKeys\Showkeys.dproj"/>
+    </Target>
+    <Target Name="Showkeys:Clean">
+        <MSBuild Projects="ShowKeys\Showkeys.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Showkeys:Make">
+        <MSBuild Projects="ShowKeys\Showkeys.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="PinballFX3Launcher;Showkeys"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="PinballFX3Launcher:Clean;Showkeys:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="PinballFX3Launcher:Make;Showkeys:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
