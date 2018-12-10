@@ -43,7 +43,7 @@ Specifies the key to be used for right selection (default right shift = 161)
 Specifies the key to be used to confirm the selection and launch the app, by default pinball fx3 (default return = 13)
 
 ### QUITKEY
-Specifies the key to be used for quiting the launcher and returning to PinballX. Please make sure it's set to same key as PinballX's quit key (default esc = 27)
+Specifies the key to be used for quiting the launcher and returning to PinballX. Please make sure it's set to same key as PinballX's quit emulator key (default Q = 81)
 
 ### STARTPARAMS
 should contain the launch command to launch the game in case of steam related games the applaunch parameter with appid, can also be empty if you are directly calling an extrnal app, for example one that does not require steam. You can also supply extra parameters here you want to add, for example adding -offline after the steam appid in case of pinball fx3 if you want to run in offline mode  (default = -applaunch 442120 to launch pinball fx3)
