@@ -5,9 +5,9 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 ![PinballX Launcher app](/images/launcher.png)
 
 ## Usage
-Place the executable in a directory you can remember and launch it once. Then close the application using esc key or alt + f4. 
+Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
 It should have created an ini file with the same name as the executable. By default it will generate settings for pinball FX3
-to be able to select multiplayer and classic mode options. The app is setup to use ESC as the quit key, 
+to be able to select multiplayer and classic mode options. The app is setup to use q as the quit key, 
 LEFT SHIFT to select previous button, RIGHT SHIFT to select next button and the RETURN / ENTER key to launch. You should choose the same
 keys for this app as the keys you are using in the PinballX frontend. If your cabinet is setup to use different keys, you can edit the 
 keys in the ini file under the "SETTINGS" section. You'll need to supply the following entries "LEFTKEY", "RIGHTKEY", "LAUNCHKEY" and "QUITKEY".
