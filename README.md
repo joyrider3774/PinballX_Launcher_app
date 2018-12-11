@@ -1,6 +1,6 @@
 # PinballX Launcher app
 A PinballX Launcher app to specify parameters for the launched application. 
-Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled by your pinball cabinet contols
+Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled by your pinball cabinet controls
 
 ![PinballX Launcher app](/images/launcher.png)
 
