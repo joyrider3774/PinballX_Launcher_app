@@ -98,7 +98,7 @@ Specifies the way the windows is kept in the foreground, 0 = nothing is done to 
 ### TITLE
 Title to be shown at the top of the program (Default = Pinball FX3 Launcher)
 
-##JOYPAD INI SETTINGS
+## JOYPAD INI SETTINGS
 
 ### USEJOYPAD
 enable (1) / Disable (0) joypad support (Default = 0)
