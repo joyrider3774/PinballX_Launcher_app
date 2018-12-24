@@ -1,11 +1,15 @@
 unit MainForm;
 
+//uses NLDJoystick created by Albert de Weerd (aka NGLN)
+//https://www.nldelphi.com/showthread.php?29812-NLDJoystick
+//http://svn.nldelphi.com/nldelphi/opensource/ngln/NLDJoystick/
+
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ButtonGroup, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.Imaging.pngimage, System.Types;
+  Vcl.ExtCtrls, Vcl.Imaging.pngimage, System.Types, NLDJoystick;
 
 const
   NumButtonRows = 3; //NumButtonRows multiplied by NumButtonCols
@@ -24,6 +28,8 @@ const
   ButtonStartxPos = 34;
   ButtonStartyPos = 34;
 
+  JoyAxisPovSleep = 150;
+
 type
   TButtonRec = record
     Param: String;
@@ -33,22 +39,38 @@ type
 
   TMainLauncherForm = class(TForm)
     tmr1: TTimer;
+    JoyPad: TNLDJoystick;
+    tmrJoypadEnable: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormDestroy(Sender: TObject);
     procedure FormPaint(Sender: TObject);
     procedure tmr1Timer(Sender: TObject);
+    procedure JoyPadButtonDown(Sender: TNLDJoystick;
+      const Buttons: TJoyButtons);
+    procedure JoyPadMove(Sender: TNLDJoystick; const JoyPos: TJoyRelPos;
+      const Buttons: TJoyButtons);
+    procedure tmrJoypadEnableTimer(Sender: TObject);
+    procedure JoyPadPOVChanged(Sender: TNLDJoystick; Degrees: Single);
   private
     { Private declarations }
     StartTickCount, SecondsRunning, PrevSecondsRunning: Cardinal;
-    FNumLastRowsNotVisible, FNumFirstRowsNotVisible: Integer;
+    FNumLastRowsNotVisible, FNumFirstRowsNotVisible, FForceForeGroundWindow: Integer;
     BitMapBuffer, BitmapRotated, BitMapScaled: TBitmap;
     PngBackGround, PngSelection, PngNoSelection: TPngImage;
     Path, LaunchParams, StartParams, Title: String;
     LeftKey, RightKey, LaunchKey, QuitKey: Word;
     ScaleM, ScaleD, SelectedButton, DoRotate: Integer;
-    Buttons: Array[1..NumButtonRows*NumButtonCols] of TButtonRec;
-    DontSaveIni, DontReadSteamPathReg, SmoothResizeDraw: Boolean;
+    FButtons: Array[1..NumButtonRows*NumButtonCols] of TButtonRec;
+    DontSaveIni, DontReadSteamPathReg, SmoothResizeDraw, UseJoypad,
+    ForceForeGroundWindowDone : Boolean;
+    JoyLaunchButton, JoyLeftButton, JoyQuitButton, JoyRightButton,
+    JoyLeftRightAxis: Integer;
+    JoyAxisDeadZone: Double;
+    JoyPovLeftMin, JoyPovLeftMax, JoyPovRightMin, JoyPovRightMax: Single;
+    JoyAxisMustRelease, JoyPovMustRelease, JoyPovSelection,
+    JoyAxisSelection, JoyButtonSelection: Boolean;
+
     procedure CMDialogKey(var msg: TCMDialogKey); message CM_DIALOGKEY;
     procedure DoLaunch(const aParams: String);
     procedure SetSelectedButton(Index:Integer);
@@ -58,6 +80,7 @@ type
     procedure LoadIni;
     procedure CaclulateNumLastRowsNotVisible;
     procedure CaclulateNumFirstRowsNotVisible;
+    procedure DoQuit;
   public
     { Public declarations }
   end;
@@ -72,6 +95,13 @@ implementation
 uses
   System.Win.Registry, System.IniFiles, Winapi.ShellAPI, GDIPAPI, Utils, System.Math;
 
+procedure TMainLauncherForm.DoQuit;
+begin
+  tmr1.Enabled := False;
+  tmrJoypadEnable.Enabled := false;
+  JoyPad.Active := false;
+  Application.Terminate;
+end;
 
 procedure TMainLauncherForm.CaclulateNumFirstRowsNotVisible;
 var
@@ -83,7 +113,7 @@ begin
     for x := 0 to NumButtonCols -1 do
     begin
       button := y * NumButtonCols + x + 1;
-      if Buttons[Button].Enabled then
+      if FButtons[Button].Enabled then
         exit;
     end;
     Inc(FNumFirstRowsNotVisible);
@@ -100,7 +130,7 @@ begin
     for x := 0 to NumButtonCols -1 do
     begin
       button := y * NumButtonCols + x + 1;
-      if Buttons[Button].Enabled then
+      if FButtons[Button].Enabled then
         exit;
     end;
     Inc(FNumLastRowsNotVisible);
@@ -115,7 +145,13 @@ end;
 
 procedure TMainLauncherForm.tmr1Timer(Sender: TObject);
 begin
-  ForceForegroundWindow(Self.Handle);
+  if (FForceForeGroundWindow = 1) or
+    ((FForceForeGroundWindow = 2) and not ForceForeGroundWindowDone) then
+  begin
+    ForceForegroundWindow(Self.Handle);
+    ForceForeGroundWindowDone := True;
+  end;
+
   PrevSecondsRunning := SecondsRunning;
   SecondsRunning := (GetTickCount - StartTickCount) div 1000;
 
@@ -125,10 +161,19 @@ begin
 
   if SecondsRunning >= AutoLaunchInSecs then
   begin
-    tmr1.Enabled := False;
     SecondsRunning := AutoLaunchInSecs;
-    DoLaunch(Buttons[SelectedButton].Param);
+    DoLaunch(FButtons[SelectedButton].Param);
   end;
+end;
+
+procedure TMainLauncherForm.tmrJoypadEnableTimer(Sender: TObject);
+begin
+  if not JoyPad.Active then
+  begin
+    JoyPad.Active := True;
+    if JoyPad.Active then
+      tmrJoypadEnable.Enabled := false;
+  end
 end;
 
 procedure TMainLauncherForm.LoadIni;
@@ -147,58 +192,73 @@ begin
     ScaleD := IniFile.ReadInteger('SETTINGS', 'SCALED', 1);
     DoRotate := IniFile.ReadInteger('SETTINGS', 'ROTATE', 3);
     DontSaveIni := IniFile.ReadBool('SETTINGS', 'DONTSAVEINIONEXIT', False);
-
     DontReadSteamPathReg := IniFile.ReadBool('SETTINGS', 'DONTREADSTEAMPATHREG', False);
     SmoothResizeDraw := IniFile.ReadBool('SETTINGS', 'SMOOTHRESIZEDRAW', True);
-
     Title := IniFile.ReadString('SETTINGS', 'TITLE', 'Pinball FX3 Launcher');
-    Buttons[1].Text := IniFile.ReadString('BUTTON_ONE', 'TEXT', 'One Player (Normal)');
-    Buttons[1].Enabled := IniFile.ReadBool('BUTTON_ONE', 'ENABLED', True);
-    Buttons[1].Param := IniFile.ReadString('BUTTON_ONE', 'PARAM', '');
+    FForceForeGroundWindow := IniFile.ReadInteger('SETTINGS', 'FORCEFOREGROUNDWINDOW', 0);
 
-    Buttons[2].Text := IniFile.ReadString('BUTTON_TWO', 'TEXT', 'Two Players (Normal)');
-    Buttons[2].Enabled := IniFile.ReadBool('BUTTON_TWO', 'ENABLED', True);
-    Buttons[2].Param := IniFile.ReadString('BUTTON_TWO', 'PARAM', '-hotseat_2');
+    UseJoypad := IniFile.ReadBool('JOYPAD', 'USEJOYPAD', False);
+    JoyLeftButton := IniFile.ReadInteger('JOYPAD', 'LEFTBUTTON', 4);
+    JoyRightButton := IniFile.ReadInteger('JOYPAD', 'RIGHTBUTTON', 5);
+    JoyLaunchButton := IniFile.ReadInteger('JOYPAD', 'LAUNCHBUTTON', 0);
+    JoyQuitButton := IniFile.ReadInteger('JOYPAD', 'QUITBUTTON', 6);
+    JoyLeftRightAxis := IniFile.ReadInteger('JOYPAD', 'LEFTRIGHTAXIS', 0);
+    JoyAxisDeadZone := IniFile.ReadFloat('JOYPAD', 'LEFTRIGHTAXISDEADZONE', 0.5);
+    JoyPovLeftMin := IniFile.ReadFloat('JOYPAD', 'JOYPOVLEFTMIN', 260);
+    JoyPovLeftMax := IniFile.ReadFloat('JOYPAD', 'JOYPOVLEFTMAX', 280);
+    JoyPovRightMin := IniFile.ReadFloat('JOYPAD', 'JOYPOVRIGHTMIN', 80);
+    JoyPovRightMax := IniFile.ReadFloat('JOYPAD', 'JOYPOVRIGHTMAX', 100);
+    JoyAxisSelection := IniFile.ReadBool('JOYPAD', 'JOYAXISSELECTION', True);
+    JoyPovSelection := IniFile.ReadBool('JOYPAD', 'JOYPOVSELECTION', True);
+    JoyButtonSelection := IniFile.ReadBool('JOYPAD', 'JOYBUTTONSELECTION', True);
 
-    Buttons[3].Text := IniFile.ReadString('BUTTON_THREE', 'TEXT', 'Three Players (Normal)');
-    Buttons[3].Enabled := IniFile.ReadBool('BUTTON_THREE', 'ENABLED', True);
-    Buttons[3].Param := IniFile.ReadString('BUTTON_THREE', 'PARAM', '-hotseat_3');
+    FButtons[1].Text := IniFile.ReadString('BUTTON_ONE', 'TEXT', 'One Player (Normal)');
+    FButtons[1].Enabled := IniFile.ReadBool('BUTTON_ONE', 'ENABLED', True);
+    FButtons[1].Param := IniFile.ReadString('BUTTON_ONE', 'PARAM', '');
 
-    Buttons[4].Text := IniFile.ReadString('BUTTON_FOUR', 'TEXT', 'Four Players (Normal)');
-    Buttons[4].Enabled := IniFile.ReadBool('BUTTON_FOUR', 'ENABLED', True);
-    Buttons[4].Param := IniFile.ReadString('BUTTON_FOUR', 'PARAM', '-hotseat_4');
+    FButtons[2].Text := IniFile.ReadString('BUTTON_TWO', 'TEXT', 'Two Players (Normal)');
+    FButtons[2].Enabled := IniFile.ReadBool('BUTTON_TWO', 'ENABLED', True);
+    FButtons[2].Param := IniFile.ReadString('BUTTON_TWO', 'PARAM', '-hotseat_2');
 
-    Buttons[5].Text := IniFile.ReadString('BUTTON_FIVE', 'TEXT', 'One Player (Classic)');
-    Buttons[5].Enabled := IniFile.ReadBool('BUTTON_FIVE', 'ENABLED', True);
-    Buttons[5].Param := IniFile.ReadString('BUTTON_FIVE', 'PARAM', '-class');
+    FButtons[3].Text := IniFile.ReadString('BUTTON_THREE', 'TEXT', 'Three Players (Normal)');
+    FButtons[3].Enabled := IniFile.ReadBool('BUTTON_THREE', 'ENABLED', True);
+    FButtons[3].Param := IniFile.ReadString('BUTTON_THREE', 'PARAM', '-hotseat_3');
 
-    Buttons[6].Text := IniFile.ReadString('BUTTON_SIX', 'TEXT', 'Two Players (Classic)');
-    Buttons[6].Enabled := IniFile.ReadBool('BUTTON_SIX', 'ENABLED', True);
-    Buttons[6].Param := IniFile.ReadString('BUTTON_SIX', 'PARAM', '-class -hotseat_2');
+    FButtons[4].Text := IniFile.ReadString('BUTTON_FOUR', 'TEXT', 'Four Players (Normal)');
+    FButtons[4].Enabled := IniFile.ReadBool('BUTTON_FOUR', 'ENABLED', True);
+    FButtons[4].Param := IniFile.ReadString('BUTTON_FOUR', 'PARAM', '-hotseat_4');
 
-    Buttons[7].Text := IniFile.ReadString('BUTTON_SEVEN', 'TEXT', 'Three Players (Classic)');
-    Buttons[7].Enabled := IniFile.ReadBool('BUTTON_SEVEN', 'ENABLED', True);
-    Buttons[7].Param := IniFile.ReadString('BUTTON_SEVEN', 'PARAM', '-class -hotseat_3');
+    FButtons[5].Text := IniFile.ReadString('BUTTON_FIVE', 'TEXT', 'One Player (Classic)');
+    FButtons[5].Enabled := IniFile.ReadBool('BUTTON_FIVE', 'ENABLED', True);
+    FButtons[5].Param := IniFile.ReadString('BUTTON_FIVE', 'PARAM', '-class');
 
-    Buttons[8].Text := IniFile.ReadString('BUTTON_EIGHT', 'TEXT', 'Four Players (Classic)');
-    Buttons[8].Enabled  := IniFile.ReadBool('BUTTON_EIGHT', 'ENABLED', True);
-    Buttons[8].Param := IniFile.ReadString('BUTTON_EIGHT', 'PARAM', '-class -hotseat_4');
+    FButtons[6].Text := IniFile.ReadString('BUTTON_SIX', 'TEXT', 'Two Players (Classic)');
+    FButtons[6].Enabled := IniFile.ReadBool('BUTTON_SIX', 'ENABLED', True);
+    FButtons[6].Param := IniFile.ReadString('BUTTON_SIX', 'PARAM', '-class -hotseat_2');
 
-    Buttons[9].Text := IniFile.ReadString('BUTTON_NINE', 'TEXT', '');
-    Buttons[9].Enabled  := IniFile.ReadBool('BUTTON_NINE', 'ENABLED', False);
-    Buttons[9].Param := IniFile.ReadString('BUTTON_NINE', 'PARAM', '');
+    FButtons[7].Text := IniFile.ReadString('BUTTON_SEVEN', 'TEXT', 'Three Players (Classic)');
+    FButtons[7].Enabled := IniFile.ReadBool('BUTTON_SEVEN', 'ENABLED', True);
+    FButtons[7].Param := IniFile.ReadString('BUTTON_SEVEN', 'PARAM', '-class -hotseat_3');
 
-    Buttons[10].Text := IniFile.ReadString('BUTTON_TEN', 'TEXT', '');
-    Buttons[10].Enabled  := IniFile.ReadBool('BUTTON_TEN', 'ENABLED', False);
-    Buttons[10].Param := IniFile.ReadString('BUTTON_TEN', 'PARAM', '');
+    FButtons[8].Text := IniFile.ReadString('BUTTON_EIGHT', 'TEXT', 'Four Players (Classic)');
+    FButtons[8].Enabled  := IniFile.ReadBool('BUTTON_EIGHT', 'ENABLED', True);
+    FButtons[8].Param := IniFile.ReadString('BUTTON_EIGHT', 'PARAM', '-class -hotseat_4');
 
-    Buttons[11].Text := IniFile.ReadString('BUTTON_ELEVEN', 'TEXT', '');
-    Buttons[11].Enabled  := IniFile.ReadBool('BUTTON_ELEVEN', 'ENABLED', False);
-    Buttons[11].Param := IniFile.ReadString('BUTTON_ELEVEN', 'PARAM', '');
+    FButtons[9].Text := IniFile.ReadString('BUTTON_NINE', 'TEXT', '');
+    FButtons[9].Enabled  := IniFile.ReadBool('BUTTON_NINE', 'ENABLED', False);
+    FButtons[9].Param := IniFile.ReadString('BUTTON_NINE', 'PARAM', '');
 
-    Buttons[12].Text := IniFile.ReadString('BUTTON_TWELVE', 'TEXT', '');
-    Buttons[12].Enabled  := IniFile.ReadBool('BUTTON_TWELVE', 'ENABLED', False);
-    Buttons[12].Param := IniFile.ReadString('BUTTON_TWELVE', 'PARAM', '');
+    FButtons[10].Text := IniFile.ReadString('BUTTON_TEN', 'TEXT', '');
+    FButtons[10].Enabled  := IniFile.ReadBool('BUTTON_TEN', 'ENABLED', False);
+    FButtons[10].Param := IniFile.ReadString('BUTTON_TEN', 'PARAM', '');
+
+    FButtons[11].Text := IniFile.ReadString('BUTTON_ELEVEN', 'TEXT', '');
+    FButtons[11].Enabled  := IniFile.ReadBool('BUTTON_ELEVEN', 'ENABLED', False);
+    FButtons[11].Param := IniFile.ReadString('BUTTON_ELEVEN', 'PARAM', '');
+
+    FButtons[12].Text := IniFile.ReadString('BUTTON_TWELVE', 'TEXT', '');
+    FButtons[12].Enabled  := IniFile.ReadBool('BUTTON_TWELVE', 'ENABLED', False);
+    FButtons[12].Param := IniFile.ReadString('BUTTON_TWELVE', 'PARAM', '');
 
     SetSelectedButton(IniFile.ReadInteger('SETTINGS', 'LASTACTIVEBUTTON', 1));
   finally
@@ -226,55 +286,70 @@ begin
     IniFile.WriteInteger('SETTINGS', 'LASTACTIVEBUTTON', SelectedButton);
     IniFile.WriteInteger('SETTINGS', 'ROTATE', DoRotate);
     IniFile.WriteBool('SETTINGS', 'SMOOTHRESIZEDRAW', SmoothResizeDraw);
+    IniFile.WriteInteger('SETTINGS', 'FORCEFOREGROUNDWINDOW', FForceForeGroundWindow);
 
+    IniFile.WriteBool('JOYPAD', 'USEJOYPAD', UseJoypad);
+    IniFile.WriteInteger('JOYPAD', 'LEFTBUTTON', JoyLeftButton);
+    IniFile.WriteInteger('JOYPAD', 'RIGHTBUTTON', JoyRightButton);
+    IniFile.WriteInteger('JOYPAD', 'LAUNCHBUTTON', JoyLaunchButton);
+    IniFile.WriteInteger('JOYPAD', 'QUITBUTTON', JoyQuitButton);
+    IniFile.WriteInteger('JOYPAD', 'LEFTRIGHTAXIS', JoyLeftRightAxis);
+    IniFile.WriteFloat('JOYPAD', 'LEFTRIGHTAXISDEADZONE', JoyAxisDeadZone);
+    IniFile.WriteFloat('JOYPAD', 'JOYPOVLEFTMIN', JoyPovLeftMin);
+    IniFile.WriteFloat('JOYPAD', 'JOYPOVLEFTMAX', JoyPovLeftMax);
+    IniFile.WriteFloat('JOYPAD', 'JOYPOVRIGHTMIN', JoyPovRightMin);
+    IniFile.WriteFloat('JOYPAD', 'JOYPOVRIGHTMAX', JoyPovRightMax);
+    IniFile.WriteBool('JOYPAD', 'JOYAXISSELECTION', JoyAxisSelection);
+    IniFile.WriteBool('JOYPAD', 'JOYPOVSELECTION', JoyPovSelection);
+    IniFile.WriteBool('JOYPAD', 'JOYBUTTONSELECTION', JoyButtonSelection);
 
-    IniFile.WriteString('BUTTON_ONE', 'TEXT',  Buttons[1].Text);
-    IniFile.WriteBool('BUTTON_ONE', 'ENABLED', Buttons[1].Enabled);
-    IniFile.WriteString('BUTTON_ONE', 'PARAM', Buttons[1].Param);
+    IniFile.WriteString('BUTTON_ONE', 'TEXT',  FButtons[1].Text);
+    IniFile.WriteBool('BUTTON_ONE', 'ENABLED', FButtons[1].Enabled);
+    IniFile.WriteString('BUTTON_ONE', 'PARAM', FButtons[1].Param);
 
-    IniFile.WriteString('BUTTON_TWO', 'TEXT', Buttons[2].Text);
-    IniFile.WriteBool('BUTTON_TWO', 'ENABLED', Buttons[2].Enabled);
-    IniFile.WriteString('BUTTON_TWO', 'PARAM', Buttons[2].Param);
+    IniFile.WriteString('BUTTON_TWO', 'TEXT', FButtons[2].Text);
+    IniFile.WriteBool('BUTTON_TWO', 'ENABLED', FButtons[2].Enabled);
+    IniFile.WriteString('BUTTON_TWO', 'PARAM', FButtons[2].Param);
 
-    IniFile.WriteString('BUTTON_THREE', 'TEXT', Buttons[3].Text);
-    IniFile.WriteBool('BUTTON_THREE', 'ENABLED', Buttons[3].Enabled);
-    IniFile.WriteString('BUTTON_THREE', 'PARAM', Buttons[3].Param);
+    IniFile.WriteString('BUTTON_THREE', 'TEXT', FButtons[3].Text);
+    IniFile.WriteBool('BUTTON_THREE', 'ENABLED', FButtons[3].Enabled);
+    IniFile.WriteString('BUTTON_THREE', 'PARAM', FButtons[3].Param);
 
-    IniFile.WriteString('BUTTON_FOUR', 'TEXT', Buttons[4].Text);
-    IniFile.WriteBool('BUTTON_FOUR', 'ENABLED', Buttons[4].Enabled);
-    IniFile.WriteString('BUTTON_FOUR', 'PARAM', Buttons[4].Param);
+    IniFile.WriteString('BUTTON_FOUR', 'TEXT', FButtons[4].Text);
+    IniFile.WriteBool('BUTTON_FOUR', 'ENABLED', FButtons[4].Enabled);
+    IniFile.WriteString('BUTTON_FOUR', 'PARAM', FButtons[4].Param);
 
-    IniFile.WriteString('BUTTON_FIVE', 'TEXT',  Buttons[5].Text );
-    IniFile.WriteBool('BUTTON_FIVE', 'ENABLED', Buttons[5].Enabled);
-    IniFile.WriteString('BUTTON_FIVE', 'PARAM', Buttons[5].Param);
+    IniFile.WriteString('BUTTON_FIVE', 'TEXT',  FButtons[5].Text );
+    IniFile.WriteBool('BUTTON_FIVE', 'ENABLED', FButtons[5].Enabled);
+    IniFile.WriteString('BUTTON_FIVE', 'PARAM', FButtons[5].Param);
 
-    IniFile.WriteString('BUTTON_SIX', 'TEXT', Buttons[6].Text);
-    IniFile.WriteBool('BUTTON_SIX', 'ENABLED', Buttons[6].Enabled);
-    IniFile.WriteString('BUTTON_SIX', 'PARAM', Buttons[6].Param);
+    IniFile.WriteString('BUTTON_SIX', 'TEXT', FButtons[6].Text);
+    IniFile.WriteBool('BUTTON_SIX', 'ENABLED', FButtons[6].Enabled);
+    IniFile.WriteString('BUTTON_SIX', 'PARAM', FButtons[6].Param);
 
-    IniFile.WriteString('BUTTON_SEVEN', 'TEXT', Buttons[7].Text);
-    IniFile.WriteBool('BUTTON_SEVEN', 'ENABLED', Buttons[7].Enabled);
-    IniFile.WriteString('BUTTON_SEVEN', 'PARAM', Buttons[7].Param);
+    IniFile.WriteString('BUTTON_SEVEN', 'TEXT', FButtons[7].Text);
+    IniFile.WriteBool('BUTTON_SEVEN', 'ENABLED', FButtons[7].Enabled);
+    IniFile.WriteString('BUTTON_SEVEN', 'PARAM', FButtons[7].Param);
 
-    IniFile.WriteString('BUTTON_EIGHT', 'TEXT', Buttons[8].Text);
-    IniFile.WriteBool('BUTTON_EIGHT', 'ENABLED', Buttons[8].Enabled);
-    IniFile.WriteString('BUTTON_EIGHT', 'PARAM', Buttons[8].Param);
+    IniFile.WriteString('BUTTON_EIGHT', 'TEXT', FButtons[8].Text);
+    IniFile.WriteBool('BUTTON_EIGHT', 'ENABLED', FButtons[8].Enabled);
+    IniFile.WriteString('BUTTON_EIGHT', 'PARAM', FButtons[8].Param);
 
-    IniFile.WriteString('BUTTON_NINE', 'TEXT', Buttons[9].Text);
-    IniFile.WriteBool('BUTTON_NINE', 'ENABLED', Buttons[9].Enabled);
-    IniFile.WriteString('BUTTON_NINE', 'PARAM', Buttons[9].Param);
+    IniFile.WriteString('BUTTON_NINE', 'TEXT', FButtons[9].Text);
+    IniFile.WriteBool('BUTTON_NINE', 'ENABLED', FButtons[9].Enabled);
+    IniFile.WriteString('BUTTON_NINE', 'PARAM', FButtons[9].Param);
 
-    IniFile.WriteString('BUTTON_TEN', 'TEXT', Buttons[10].Text);
-    IniFile.WriteBool('BUTTON_TEN', 'ENABLED', Buttons[10].Enabled );
-    IniFile.WriteString('BUTTON_TEN', 'PARAM', Buttons[10].Param);
+    IniFile.WriteString('BUTTON_TEN', 'TEXT', FButtons[10].Text);
+    IniFile.WriteBool('BUTTON_TEN', 'ENABLED', FButtons[10].Enabled );
+    IniFile.WriteString('BUTTON_TEN', 'PARAM', FButtons[10].Param);
 
-    IniFile.WriteString('BUTTON_ELEVEN', 'TEXT', Buttons[11].Text);
-    IniFile.WriteBool('BUTTON_ELEVEN', 'ENABLED', Buttons[11].Enabled );
-    IniFile.WriteString('BUTTON_ELEVEN', 'PARAM', Buttons[11].Param);
+    IniFile.WriteString('BUTTON_ELEVEN', 'TEXT', FButtons[11].Text);
+    IniFile.WriteBool('BUTTON_ELEVEN', 'ENABLED', FButtons[11].Enabled );
+    IniFile.WriteString('BUTTON_ELEVEN', 'PARAM', FButtons[11].Param);
 
-    IniFile.WriteString('BUTTON_TWELVE', 'TEXT', Buttons[12].Text);
-    IniFile.WriteBool('BUTTON_TWELVE', 'ENABLED', Buttons[12].Enabled );
-    IniFile.WriteString('BUTTON_TWELVE', 'PARAM', Buttons[12].Param);
+    IniFile.WriteString('BUTTON_TWELVE', 'TEXT', FButtons[12].Text);
+    IniFile.WriteBool('BUTTON_TWELVE', 'ENABLED', FButtons[12].Enabled );
+    IniFile.WriteString('BUTTON_TWELVE', 'PARAM', FButtons[12].Param);
 
     IniFile.UpdateFile;
   finally
@@ -291,20 +366,20 @@ var
 begin
   Inc(SelectedButton);
 
-  if SelectedButton > High(Buttons) then
-    SelectedButton := Low(Buttons);
+  if SelectedButton > High(FButtons) then
+    SelectedButton := Low(FButtons);
 
-  if not Buttons[SelectedButton].Enabled then
+  if not FButtons[SelectedButton].Enabled then
   begin
-    for Teller := SelectedButton to High(Buttons) do
-      if Buttons[Teller].Enabled then
+    for Teller := SelectedButton to High(FButtons) do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
       end;
 
-    for Teller := Low(Buttons) to SelectedButton do
-      if Buttons[Teller].Enabled then
+    for Teller := Low(FButtons) to SelectedButton do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
@@ -319,20 +394,20 @@ var
 begin
   Dec(SelectedButton);
 
-  if SelectedButton < Low(Buttons) then
-    SelectedButton := High(Buttons);
+  if SelectedButton < Low(FButtons) then
+    SelectedButton := High(FButtons);
 
-  if not Buttons[SelectedButton].Enabled then
+  if not FButtons[SelectedButton].Enabled then
   begin
-    for Teller := SelectedButton downto low(Buttons) do
-      if Buttons[Teller].Enabled then
+    for Teller := SelectedButton downto low(FButtons) do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
       end;
 
-    for Teller := High(Buttons) downto SelectedButton do
-      if Buttons[Teller].Enabled then
+    for Teller := High(FButtons) downto SelectedButton do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
@@ -344,23 +419,23 @@ procedure TMainLauncherForm.SetSelectedButton(Index:Integer);
 var
   Teller: Integer;
 begin
-  if index < low(Buttons) then
-    index := low(Buttons);
-  if index > high(Buttons) then
-    index := high(Buttons);
+  if index < low(FButtons) then
+    index := low(FButtons);
+  if index > high(FButtons) then
+    index := high(FButtons);
 
   //find next enabled button
-  if not Buttons[Index].Enabled then
+  if not FButtons[Index].Enabled then
   begin
-    for Teller := Index + 1 to Length(Buttons) do
-      if Buttons[Teller].Enabled then
+    for Teller := Index + 1 to Length(FButtons) do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
       end;
 
-    for Teller := Low(Buttons) to Index -1 do
-      if Buttons[Teller].Enabled then
+    for Teller := Low(FButtons) to Index -1 do
+      if FButtons[Teller].Enabled then
       begin
         SelectedButton := Teller;
         exit;
@@ -372,6 +447,9 @@ end;
 
 procedure TMainLauncherForm.DoLaunch(const aParams: string);
 begin
+  tmr1.Enabled := False;
+  tmrJoypadEnable.Enabled := false;
+  JoyPad.Active := false;
   Application.Terminate;
   if not FileExists(Path) then
   begin
@@ -390,10 +468,13 @@ var
   oReg: TRegistry;
   sFilePath: String;
 begin
+  ForceForeGroundWindowDone := false;
   LaunchParams := '';
   ScaleM := 1;
   ScaleD := 1;
   SecondsRunning := 0;
+  JoyAxisMustRelease := false;
+  JoyPovMustRelease := false;
 
   PngBackGround := TPngImage.Create;
   PngSelection := TPngImage.Create;
@@ -405,6 +486,14 @@ begin
   PngNoSelection.LoadFromFile(sFilePath + 'butnoselection.png');
 
   LoadIni;
+
+  if UseJoyPad then
+  begin
+    joyPad.Active := True;
+    if not JoyPad.Active then
+      tmrJoypadEnable.Enabled := true;
+  end;
+
 
   if (Path = '') and not DontReadSteamPathReg then
   begin
@@ -511,10 +600,7 @@ begin
         RealKey := VK_RMENU;
 
   if (RealKey = LaunchKey) then
-  begin
-    tmr1.Enabled := False;
-    DoLaunch(Buttons[SelectedButton].Param);
-  end;
+    DoLaunch(FButtons[SelectedButton].Param);
 
   if RealKey = LeftKey then
   begin
@@ -529,10 +615,7 @@ begin
   end;
 
   if RealKey = QuitKey then
-  begin
-    tmr1.Enabled := False;
-    Application.Terminate;
-  end;
+    DoQuit;
 end;
 
 procedure TMainLauncherForm.FormPaint(Sender: TObject);
@@ -571,7 +654,7 @@ begin
     begin
       button := y * NumButtonCols + x + 1;
 
-      if Buttons[Button].Enabled then
+      if FButtons[Button].Enabled then
       begin
         if button = SelectedButton then
         begin
@@ -589,7 +672,7 @@ begin
         TextRect.Top := (ButtonSize + ButtonSpacing * y) + ButtonStartyPos + ButtonVCenter + ButtonTextMargin;
         TextRect.Width := ButtonSize - (2 * ButtonTextMargin);
         TextRect.Height := ButtonSize - (2 * ButtonTextMargin);
-        TextHeight := DrawText(BitMapBuffer.Canvas.Handle, Buttons[button].Text,
+        TextHeight := DrawText(BitMapBuffer.Canvas.Handle, FButtons[button].Text,
           -1, TextRect, DT_CENTER or DT_WORDBREAK or DT_EDITCONTROL or DT_CALCRECT);
 
         TextRect.Left := ((ButtonSize + ButtonSpacing) * x) + ButtonStartxPos + ButtonTextMargin;
@@ -601,7 +684,7 @@ begin
 
         TextRect.Width := ButtonSize - (2 * ButtonTextMargin);
         TextRect.Height := ButtonSize - (2 * ButtonTextMargin);
-        DrawText(BitMapBuffer.Canvas.Handle, Buttons[button].Text,
+        DrawText(BitMapBuffer.Canvas.Handle, FButtons[button].Text,
           -1, TextRect, DT_CENTER or DT_EDITCONTROL or DT_WORDBREAK);
       end;
 
@@ -633,6 +716,203 @@ begin
   end
   else
     Canvas.Draw(0, 0, BitmapRotated);
+end;
+
+procedure TMainLauncherForm.JoyPadButtonDown(Sender: TNLDJoystick;
+  const Buttons: TJoyButtons);
+begin
+  if JoyButtonSelection and (JoyLeftButton > -1) and (JoyLeftButton < 32) then
+    if TJoyButton(JoyLeftButton) in Buttons then
+    begin
+      SelectPrev;
+      RePaint;
+    end;
+
+  if JoyButtonSelection and (JoyRightButton > -1) and (JoyRightButton < 32) then
+    if TJoyButton(JoyRightButton) in Buttons then
+    begin
+      SelectNext;
+      Repaint;
+    end;
+
+  if (JoyLaunchButton > -1) and (JoyLaunchButton < 32) then
+    if TJoyButton(JoyLaunchButton) in Buttons then
+      DoLaunch(FButtons[SelectedButton].Param);
+
+  if (JoyQuitButton > -1) and (JoyQuitButton < 32) then
+    if TJoyButton(JoyQuitButton) in Buttons then
+      DoQuit
+end;
+
+procedure TMainLauncherForm.JoyPadMove(Sender: TNLDJoystick;
+  const JoyPos: TJoyRelPos; const Buttons: TJoyButtons);
+begin
+  if not JoyAxisSelection then exit;
+
+  if (JoyLeftRightAxis > -1) and (JoyLeftRightAxis < 6) then
+    if TJoyAxis(JoyLeftRightAxis) in JoyPad.Axises then
+      case TJoyAxis(JoyLeftRightAxis) of
+        axX:
+          if Joypos.X < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.X > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+        axY:
+          if Joypos.Y < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.Y > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+        axZ:
+          if Joypos.Z < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.Z > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+        axR:
+          if Joypos.R < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.R > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+        axU:
+          if Joypos.U < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.U > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+        axV:
+          if Joypos.V < -JoyAxisDeadZone then
+          begin
+            if not JoyAxisMustRelease then
+            begin
+              SelectPrev;
+              Repaint;
+              JoyAxisMustRelease := True;
+            end;
+          end
+          else
+            if JoyPos.V > JoyAxisDeadZone then
+            begin
+              if not JoyAxisMustRelease then
+              begin
+                SelectNext;
+                Repaint;
+                JoyAxisMustRelease := True;
+              end;
+            end
+            else
+              JoyAxisMustRelease := False;
+      end;
+end;
+
+procedure TMainLauncherForm.JoyPadPOVChanged(Sender: TNLDJoystick;
+  Degrees: Single);
+begin
+  if not JoyPovSelection then exit;
+
+  if (Degrees >= JoyPovLeftMin) and (Degrees <= JoyPovLeftMax) then
+  begin
+    if not JoyPovMustRelease then
+    begin
+      SelectPrev;
+      Repaint;
+      JoyPovMustRelease := True;
+    end;
+  end
+  else
+    if (Degrees >= JoyPovRightMin) and (Degrees <= JoyPovRightMax) then
+    begin
+      if not JoyPovMustRelease then
+      begin
+        SelectNext;
+        Repaint;
+        JoyPovMustRelease := True;
+      end;
+    end
+    else
+      JoyPovMustRelease := False;
 end;
 
 end.

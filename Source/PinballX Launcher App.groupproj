@@ -9,6 +9,12 @@
         <Projects Include="ShowKeys\Showkeys.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="NLDJoystick\NLDJoystick70.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ShowJoypad\ShowJoypad.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +41,32 @@
     <Target Name="Showkeys:Make">
         <MSBuild Projects="ShowKeys\Showkeys.dproj" Targets="Make"/>
     </Target>
+    <Target Name="NLDJoystick70">
+        <MSBuild Projects="NLDJoystick\NLDJoystick70.dproj"/>
+    </Target>
+    <Target Name="NLDJoystick70:Clean">
+        <MSBuild Projects="NLDJoystick\NLDJoystick70.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="NLDJoystick70:Make">
+        <MSBuild Projects="NLDJoystick\NLDJoystick70.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ShowJoypad">
+        <MSBuild Projects="ShowJoypad\ShowJoypad.dproj"/>
+    </Target>
+    <Target Name="ShowJoypad:Clean">
+        <MSBuild Projects="ShowJoypad\ShowJoypad.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ShowJoypad:Make">
+        <MSBuild Projects="ShowJoypad\ShowJoypad.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="PinballFX3Launcher;Showkeys"/>
+        <CallTarget Targets="PinballFX3Launcher;Showkeys;NLDJoystick70;ShowJoypad"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PinballFX3Launcher:Clean;Showkeys:Clean"/>
+        <CallTarget Targets="PinballFX3Launcher:Clean;Showkeys:Clean;NLDJoystick70:Clean;ShowJoypad:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PinballFX3Launcher:Make;Showkeys:Make"/>
+        <CallTarget Targets="PinballFX3Launcher:Make;Showkeys:Make;NLDJoystick70:Make;ShowJoypad:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

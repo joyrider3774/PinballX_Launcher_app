@@ -5,7 +5,7 @@ object MainLauncherForm: TMainLauncherForm
   BorderStyle = bsNone
   Caption = 'FrmMain'
   ClientHeight = 90
-  ClientWidth = 184
+  ClientWidth = 266
   Color = clBtnFace
   DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
@@ -28,6 +28,21 @@ object MainLauncherForm: TMainLauncherForm
     Interval = 50
     OnTimer = tmr1Timer
     Left = 8
+    Top = 8
+  end
+  object JoyPad: TNLDJoystick
+    Advanced = True
+    OnButtonDown = JoyPadButtonDown
+    OnMove = JoyPadMove
+    OnPOVChanged = JoyPadPOVChanged
+    Left = 48
+    Top = 8
+  end
+  object tmrJoypadEnable: TTimer
+    Enabled = False
+    Interval = 250
+    OnTimer = tmrJoypadEnableTimer
+    Left = 126
     Top = 8
   end
 end

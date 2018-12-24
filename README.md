@@ -31,6 +31,26 @@ is already running in portrait mode you need to edit the ini to not let the app 
 The app screen is 800 x 600 default but there are options to increase or decrease this size by scalling it with a multiply and divide value 
 to support higher or lower res resolutions, for example if you are using a 4K screen, the app will look small and you should upscale it.
 
+## Joystick support
+Joystick support is added using NLDJoystick created by Albert de Weerd (aka NGLN) and is by default disabled, if you want to enable it set
+USEJOYPAD=1 in the joypad section in the ini file. The default joystick settings are setup to be used with a xbox 360 wireless controller.
+You'll need to use the showjoypad tool to show information about your joypad like to find out axis, button presses, POV Movement etc.
+be sure to press buttons and move joystick axises etc to find out the settings for the ini file
+
+![showjoypad tool](/images/showjoypad.png)
+
+if the showjoypad tool does not detect your joypad please make sure you have selected your controller to be used as the joypad for older programs and 
+also make sure your joypad is attached to your pc before running it. The same applies to the launcher itselve. If it still does not detect it afterwars
+it might not be compatible with NLDJoystick. You could however use joytokey tool to map your joypad to keyboard keypresses this launcher will understand
+
+![Control panel joypad Settings](/images/controlpanelcontrollersettings.png)
+
+There are 3 ways to make selections using the joypad. Using POV, buttons or axises and you can disable any of them using the JOYAXISSELECTION,
+JOYPOVSELECTION and JOYBUTTONSELECTION settings. You'll also need to specify the LAUNCHBUTTON and QUITBUTTON button
+
+Axises, pov and buttons need to be released before it will register another function so you can not hold left or right to keep moving left or right but
+need to move the joypad left, back to center, left again, back to center etc.
+
 ## INI File settings
 
 ### LEFTKEY
@@ -72,8 +92,56 @@ Specifies the rotation used, 0 = no rotation, 1 = 90° rotation, 2 = 180° rotat
 ### SMOOTHRESIZEDRAW
 When set to 1 will use a resizing function that applies smoothing when SCALED divided by SCALEM does not equal 1 (means form is resized). This will make sure text is not jaggy and smoothend on the scaled bitmap. When this value is 0 a faster function is used but quality will be reduced (Default = 1)
 
+### FORCEFOREGROUNDWINDOW
+Specifies the way the windows is kept in the foreground, 0 = nothing is done to keep window activated, 1 = window is forced to foreground every few milliseconds, 2 = window is forced to foreground once at startup. (Default = 0)
+
 ### TITLE
 Title to be shown at the top of the program (Default = Pinball FX3 Launcher)
+
+##JOYPAD INI SETTINGS
+
+### USEJOYPAD
+enable (1) / Disable (0) joypad support (Default = 0)
+
+### JOYAXISSELECTION
+enable (1) / Disable (0) left / right selections using joystick axises, this is tied to LEFTRIGHTAXIS parameter (Default = 1)
+
+### JOYPOVSELECTION
+enable (1) / Disable (0) left / right selections using the joysitck pov, this is tied to the JOYPOVLEFTMIN, JOYPOVLEFTMAX, JOYPOVRIGHTMIN and JOYPOVRIGHTMAX parameters (Default = 1)
+
+### JOYBUTTONSELECTION
+enable (1) / Disable (0) left / right selections using joystick buttons, this is tied to the LEFTBUTTON and RIGHTBUTTON parameters (Default = 1)
+
+### LEFTBUTTON
+joystick button to be used for a left selection (Default = 4 / LB Button on xbox 360 joypad)
+
+### RIGHTBUTTON
+joystick button to be used for a right selection (Default = 5 / RB Button on xbox 360 joypad)
+
+### LAUNCHBUTTON
+joystick button to be used to confirm the selection and launch the game (Default = 0 / A Button on xbox 360 joypad)
+
+### QUITBUTTON
+joystick button to be used to quit the launcher (Default = 6 / back Button on xbox 360 joypad)
+
+### LEFTRIGHTAXIS
+Used to specify which axis to use to make left an right selections (Default = 0 / X-Axis on xbox 360 joypad)
+
+### LEFTRIGHTAXISDEADZONE
+used to specify the deadzone value, a joypad axis might never be exactly 0 in resting position so you can provide a value here before it registers the axis values (both negative and positive) (Default = 0,5)
+
+### JOYPOVLEFTMIN
+Minimum value of the POV to be registered as a left direction, Used in conjunction with JOYPOVLEFTMAX (Default = 260)
+
+### JOYPOVLEFTMAX
+Maximum value of the POV to be registered as a left direction, Used in conjunction with JOYPOVLEFTMIN (Default = 280)
+
+### JOYPOVRIGHTMIN
+Minimum value of the POV to be registered as a right direction, Used in conjunction with JOYPOVRIGHTMAX (Default = 80)
+
+### JOYPOVRIGHTMAX
+Maximum value of the POV to be registered as a left direction, Used in conjunction with JOYPOVLEFTMIN (Default = 100)
+
 
 ## ADVANCED INI SETTINGS
 If you make a copy of the executable and rename it and then start it again a seperate ini file will be created (same name as binary) using  same 
@@ -89,3 +157,4 @@ Specifies if the button is enabled / visible to be selected
 
 ### PARAM
 Specifies the parameter that will be used to launch your application when this button is selected.
+
