@@ -158,3 +158,18 @@ Specifies if the button is enabled / visible to be selected
 ### PARAM
 Specifies the parameter that will be used to launch your application when this button is selected.
 
+## CREDITS
+RotateFlipBitmap function - GolezTrol
+https://www.nldelphi.com/showthread.php?42769-Bitmap-90-graden-roteren&p=358213&viewfull=1#post358213
+
+SmoothScaleBitmap function - Dalija Prasnikar
+https://stackoverflow.com/questions/33608134/fast-way-to-resize-an-image-mixing-fmx-and-vcl-code
+
+ForceForegroundWindow function - unknown
+https://www.swissdelphicenter.ch/en/showcode.php?id=261
+
+NLDJoystick created by Albert de Weerd (aka NGLN)
+https://www.nldelphi.com/showthread.php?29812-NLDJoystick
+http://svn.nldelphi.com/nldelphi/opensource/ngln/NLDJoystick/
+
+
