@@ -75,10 +75,16 @@ Path, including filename to launch the game, or in this case steam. The app will
 If the above PATH setting is empty, the app will keep trying to find the steam location using the registry. By setting this value to 0 you can prevent it from doing so. (Default 0)
 
 ### SCALEM
-To be used along with the SCALED value specifies the value where the forms width and height will be multiplied with. Examples are M=2,D=1 equals double size 200%,  M=3, D=4  equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
+To be used along with the SCALED value specifies the value where the forms width and height will be multiplied with. Examples are M=2,D=1 equals double size 200%, M=3, D=4  equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
 
 ### SCALED
 To be used along with the SCALEM value specifies the value where the forms width and height will be divided with. Examples are M=2,D=1 equals double size 200%,  M=3, D=4  equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
+
+### SCALEFONTM
+To be used along with the SCALEFONTD value specifies the value where the fonts width and height (actually dpi setting) will be multiplied with. Examples are M=2,D=1 equals double size 200%,  M=3, D=4 equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
+
+### SCALEFONTD
+To be used along with the SCALEFONTM value specifies the value where the fonts width and height (actually dpi setting) will be divided with. Examples are M=2,D=1 equals double size 200%, M=3, D=4 equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
 
 ### DONTSAVEINIONEXIT
 Allows you to prevent writing the ini file, if you want that for some reason. By default read ini settings will always be written again to the ini file on exit. Set this value to 1 if you don't want the tool to remember for example the last selected button (Default = 0)

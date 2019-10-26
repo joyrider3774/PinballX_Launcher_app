@@ -60,7 +60,7 @@ type
     PngBackGround, PngSelection, PngNoSelection: TPngImage;
     Path, LaunchParams, StartParams, Title: String;
     LeftKey, RightKey, LaunchKey, QuitKey: Word;
-    ScaleM, ScaleD, SelectedButton, DoRotate: Integer;
+    ScaleM, ScaleD, SelectedButton, DoRotate, ScaleFontM, ScaleFontD: Integer;
     FButtons: Array[1..NumButtonRows*NumButtonCols] of TButtonRec;
     DontSaveIni, DontReadSteamPathReg, SmoothResizeDraw, UseJoypad,
     ForceForeGroundWindowDone : Boolean;
@@ -190,6 +190,8 @@ begin
     Path := IniFile.ReadString('SETTINGS', 'PATH', '');
     ScaleM := IniFile.ReadInteger('SETTINGS', 'SCALEM', 1);
     ScaleD := IniFile.ReadInteger('SETTINGS', 'SCALED', 1);
+    ScaleFontM := IniFile.ReadInteger('SETTINGS', 'SCALEFONTM', 1);
+    ScaleFontD := IniFile.ReadInteger('SETTINGS', 'SCALEFONTD', 1);
     DoRotate := IniFile.ReadInteger('SETTINGS', 'ROTATE', 3);
     DontSaveIni := IniFile.ReadBool('SETTINGS', 'DONTSAVEINIONEXIT', False);
     DontReadSteamPathReg := IniFile.ReadBool('SETTINGS', 'DONTREADSTEAMPATHREG', False);
@@ -280,6 +282,8 @@ begin
     IniFile.WriteString('SETTINGS', 'PATH', Path);
     IniFile.WriteInteger('SETTINGS','SCALEM', ScaleM);
     IniFile.WriteInteger('SETTINGS','SCALED', ScaleD);
+    IniFile.WriteInteger('SETTINGS','SCALEFONTM', ScaleFontM);
+    IniFile.WriteInteger('SETTINGS','SCALEFONTD', ScaleFontD);
     IniFile.WriteBool('SETTINGS', 'DONTSAVEINIONEXIT', DontSaveIni);
     IniFile.WriteString('SETTINGS', 'TITLE', Title);
     IniFile.WriteBool('SETTINGS', 'DONTREADSTEAMPATHREG', DontReadSteamPathReg);
@@ -630,23 +634,34 @@ begin
   BitMapBuffer.Canvas.Font := Canvas.Font;
   BitMapBuffer.Canvas.Brush.Style := bsClear;
   BitMapBuffer.Canvas.Font.Color := clWhite;
+  BitMapBuffer.Canvas.Font.PixelsPerInch := MulDiv(96, ScaleFontM, ScaleFontD);
 
   BitMapBuffer.Canvas.Font.Size := 17;
+
   TextRect.Left := 5;
   TextRect.Top := 5;
   TextRect.Width := BitMapBuffer.Width - 5;
-  TextRect.Height := 50;
+  TextRect.Height := MulDiv(50, ScaleFontM, ScaleFontD);
   DrawText(BitMapBuffer.Canvas.Handle, Title,
     -1, TextRect, DT_CENTER or DT_SINGLELINE);
 
   BitMapBuffer.Canvas.Font.Size := 10;
   TextRect.Left := 5;
-  TextRect.Top := BitMapBuffer.Height - 20;
-  TextRect.Width := BitMapBuffer.Width - 5;
+  TextRect.Top := BitMapBuffer.Height - 20 - 5;
+  TextRect.Width := BitMapBuffer.Width - 10;
   TextRect.Height := 20;
+  TextHeight := DrawText(BitMapBuffer.Canvas.Handle, 'Launcher Created by Willems Davy ' +
+    '(Joyrider3774) - Launching in ' + IntToStr(AutoLaunchInSecs - SecondsRunning),
+    -1, TextRect, DT_CENTER or DT_WORDBREAK or DT_CALCRECT);
+
+  TextRect.Left := 5;
+  TextRect.Top := BitMapBuffer.Height - TextHeight - 5;
+  TextRect.Width := BitMapBuffer.Width - 10;
+  TextRect.Height := TextHeight;
+
   DrawText(BitMapBuffer.Canvas.Handle,'Launcher Created by Willems Davy ' +
-  '(Joyrider3774) - Launching in ' + IntToStr(AutoLaunchInSecs - SecondsRunning),
-    -1, TextRect, DT_CENTER or DT_SINGLELINE);
+    '(Joyrider3774) - Launching in ' + IntToStr(AutoLaunchInSecs - SecondsRunning),
+    -1, TextRect, DT_CENTER or DT_WORDBREAK);
 
   BitMapBuffer.Canvas.Font.Size := 15;
   for x := 0 to NumButtonCols - 1 do
