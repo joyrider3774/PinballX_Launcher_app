@@ -74,6 +74,15 @@ Path, including filename to launch the game, or in this case steam. The app will
 ### DONTREADSTEAMPATHREG
 If the above PATH setting is empty, the app will keep trying to find the steam location using the registry. By setting this value to 0 you can prevent it from doing so. (Default 0)
 
+### REPOSITIONWINDOW
+When set to 0 will position the window in the center of the screen, when set to 1 will position the window using POSLEFT and POSTOP values on startup. (Default 0)
+
+### POSLEFT
+Left postion of the window (seen from top / left point of window). Wil be used as starting position for the left position on startup when REPOSITIONWINDOW equals 1. The window is dragable and will always write the left position of the window upon quiting of the launcher. Values can be negative and they depend on screen setup when using multiple monitors so better use the dragging feature of the window to position where you want it. Dragging is only possible when the program is run outside of pinballx, since pinballx seems to control the mouse when launching the launcher. Using this setting along with POSTOP, you can position the launcher window also on the backglass.
+
+### POSTOP
+Top postion of the window (seen from top / left point of window). Wil be used as starting position for the top position on startup when REPOSITIONWINDOW equals 1. The window is dragable and will always write the top position of the window upon quiting of the launcher. Values can be negative and they depend on screen setup when using multiple monitors so better use the dragging feature of the window to position where you want it. Dragging is only possible when the program is run outside of pinballx, since pinballx seems to control the mouse when launching the launcher. Using this setting along with POSLEFT, you can position the launcher window also on the backglass.
+
 ### SCALEM
 To be used along with the SCALED value specifies the value where the forms width and height will be multiplied with. Examples are M=2,D=1 equals double size 200%, M=3, D=4  equals 3 quarter size 75%, M=5, D=4 (125%) etc (Default 1)  
 

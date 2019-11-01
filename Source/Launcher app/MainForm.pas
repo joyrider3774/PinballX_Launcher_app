@@ -52,6 +52,8 @@ type
       const Buttons: TJoyButtons);
     procedure tmrJoypadEnableTimer(Sender: TObject);
     procedure JoyPadPOVChanged(Sender: TNLDJoystick; Degrees: Single);
+    procedure FormMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
     { Private declarations }
     StartTickCount, SecondsRunning, PrevSecondsRunning: Cardinal;
@@ -60,7 +62,8 @@ type
     PngBackGround, PngSelection, PngNoSelection: TPngImage;
     Path, LaunchParams, StartParams, Title: String;
     LeftKey, RightKey, LaunchKey, QuitKey: Word;
-    ScaleM, ScaleD, SelectedButton, DoRotate, ScaleFontM, ScaleFontD: Integer;
+    ScaleM, ScaleD, SelectedButton, DoRotate, ScaleFontM, ScaleFontD,
+    PosLeft, PosTop: Integer;
     FButtons: Array[1..NumButtonRows*NumButtonCols] of TButtonRec;
     DontSaveIni, DontReadSteamPathReg, SmoothResizeDraw, UseJoypad,
     ForceForeGroundWindowDone : Boolean;
@@ -69,7 +72,7 @@ type
     JoyAxisDeadZone: Double;
     JoyPovLeftMin, JoyPovLeftMax, JoyPovRightMin, JoyPovRightMax: Single;
     JoyAxisMustRelease, JoyPovMustRelease, JoyPovSelection,
-    JoyAxisSelection, JoyButtonSelection: Boolean;
+    JoyAxisSelection, JoyButtonSelection, RepositionWindow: Boolean;
 
     procedure CMDialogKey(var msg: TCMDialogKey); message CM_DIALOGKEY;
     procedure DoLaunch(const aParams: String);
@@ -152,6 +155,11 @@ begin
     ForceForeGroundWindowDone := True;
   end;
 
+  //Check if left mouse button is pressed if so pause the timer as we are
+  //probably dragging the window
+  if (GetAsyncKeyState(VK_LBUTTON) and $8000) <> 0 then
+    StartTickCount := GetTickCount - (SecondsRunning * 1000);
+
   PrevSecondsRunning := SecondsRunning;
   SecondsRunning := (GetTickCount - StartTickCount) div 1000;
 
@@ -188,6 +196,9 @@ begin
     QuitKey := IniFile.ReadInteger('SETTINGS','QUITKEY', Ord('Q'));
     StartParams := IniFile.ReadString('SETTINGS', 'STARTPARAMS', '-applaunch 442120');
     Path := IniFile.ReadString('SETTINGS', 'PATH', '');
+    RepositionWindow := IniFile.ReadBool('SETTINGS', 'REPOSITIONWINDOW', False);
+    PosLeft := IniFile.ReadInteger('SETTINGS', 'POSLEFT', 0);
+    PosTop := IniFile.ReadInteger('SETTINGS', 'POSTOP', 0);
     ScaleM := IniFile.ReadInteger('SETTINGS', 'SCALEM', 1);
     ScaleD := IniFile.ReadInteger('SETTINGS', 'SCALED', 1);
     ScaleFontM := IniFile.ReadInteger('SETTINGS', 'SCALEFONTM', 1);
@@ -280,6 +291,9 @@ begin
     IniFile.WriteInteger('SETTINGS','QUITKEY', QuitKey);
     IniFile.WriteString('SETTINGS', 'STARTPARAMS', StartParams);
     IniFile.WriteString('SETTINGS', 'PATH', Path);
+    IniFile.WriteBool('SETTINGS', 'REPOSITIONWINDOW', RepositionWindow);
+    IniFile.WriteInteger('SETTINGS', 'POSLEFT', Left);
+    IniFile.WriteInteger('SETTINGS', 'POSTOP', Top);
     IniFile.WriteInteger('SETTINGS','SCALEM', ScaleM);
     IniFile.WriteInteger('SETTINGS','SCALED', ScaleD);
     IniFile.WriteInteger('SETTINGS','SCALEFONTM', ScaleFontM);
@@ -554,6 +568,13 @@ begin
     BitMapScaled.SetSize(Width, Height);
   end;
 
+  if RepositionWindow then
+  begin
+    Position := poDesigned;
+    Left := PosLeft;
+    Top := PosTop;
+  end;
+
   StartTickCount := GetTickCount;
 end;
 
@@ -621,6 +642,19 @@ begin
   if RealKey = QuitKey then
     DoQuit;
 end;
+
+procedure TMainLauncherForm.FormMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+const
+  SC_DRAGMOVE = $F012;
+begin
+  if Button = mbLeft then
+  begin
+    ReleaseCapture;
+    Perform(WM_SYSCOMMAND, SC_DRAGMOVE, 0);
+  end;
+end;
+
 
 procedure TMainLauncherForm.FormPaint(Sender: TObject);
 var

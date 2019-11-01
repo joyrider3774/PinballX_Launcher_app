@@ -21,6 +21,7 @@ object MainLauncherForm: TMainLauncherForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnKeyDown = FormKeyDown
+  OnMouseDown = FormMouseDown
   OnPaint = FormPaint
   PixelsPerInch = 96
   TextHeight = 13
