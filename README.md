@@ -62,6 +62,9 @@ Specifies the key to be used for right selection (default right shift = 161)
 ### LAUNCHKEY
 Specifies the key to be used to confirm the selection and launch the app, by default pinball fx3 (default return = 13)
 
+### LAUNCHKEY2
+Specifies an alternate key to be used to confirm the selection and launch the app, by default pinball fx3 (default space = 32)
+
 ### QUITKEY
 Specifies the key to be used for quiting the launcher and returning to PinballX. Please make sure it's set to same key as PinballX's quit emulator key (default Q = 81)
 
@@ -135,6 +138,9 @@ joystick button to be used for a right selection (Default = 5 / RB Button on xbo
 
 ### LAUNCHBUTTON
 joystick button to be used to confirm the selection and launch the game (Default = 0 / A Button on xbox 360 joypad)
+
+### LAUNCHBUTTON2
+Alternate joystick button to be used to confirm the selection and launch the game (Default = 1 / B Button on xbox 360 joypad)
 
 ### QUITBUTTON
 joystick button to be used to quit the launcher (Default = 6 / back Button on xbox 360 joypad)

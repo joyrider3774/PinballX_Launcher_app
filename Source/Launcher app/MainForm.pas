@@ -61,13 +61,13 @@ type
     BitMapBuffer, BitmapRotated, BitMapScaled: TBitmap;
     PngBackGround, PngSelection, PngNoSelection: TPngImage;
     Path, LaunchParams, StartParams, Title: String;
-    LeftKey, RightKey, LaunchKey, QuitKey: Word;
+    LeftKey, RightKey, LaunchKey, LaunchKey2, QuitKey: Word;
     ScaleM, ScaleD, SelectedButton, DoRotate, ScaleFontM, ScaleFontD,
     PosLeft, PosTop: Integer;
     FButtons: Array[1..NumButtonRows*NumButtonCols] of TButtonRec;
     DontSaveIni, DontReadSteamPathReg, SmoothResizeDraw, UseJoypad,
     ForceForeGroundWindowDone : Boolean;
-    JoyLaunchButton, JoyLeftButton, JoyQuitButton, JoyRightButton,
+    JoyLaunchButton, JoyLaunchButton2, JoyLeftButton, JoyQuitButton, JoyRightButton,
     JoyLeftRightAxis: Integer;
     JoyAxisDeadZone: Double;
     JoyPovLeftMin, JoyPovLeftMax, JoyPovRightMin, JoyPovRightMax: Single;
@@ -193,6 +193,7 @@ begin
     LeftKey := IniFile.ReadInteger('SETTINGS','LEFTKEY', VK_LSHIFT);
     RightKey := IniFile.ReadInteger('SETTINGS','RIGHTKEY', VK_RSHIFT);
     LaunchKey := IniFile.ReadInteger('SETTINGS','LAUNCHKEY', VK_RETURN);
+    LaunchKey2 := IniFile.ReadInteger('SETTINGS','LAUNCHKEY2', VK_SPACE);
     QuitKey := IniFile.ReadInteger('SETTINGS','QUITKEY', Ord('Q'));
     StartParams := IniFile.ReadString('SETTINGS', 'STARTPARAMS', '-applaunch 442120');
     Path := IniFile.ReadString('SETTINGS', 'PATH', '');
@@ -214,6 +215,7 @@ begin
     JoyLeftButton := IniFile.ReadInteger('JOYPAD', 'LEFTBUTTON', 4);
     JoyRightButton := IniFile.ReadInteger('JOYPAD', 'RIGHTBUTTON', 5);
     JoyLaunchButton := IniFile.ReadInteger('JOYPAD', 'LAUNCHBUTTON', 0);
+    JoyLaunchButton2 := IniFile.ReadInteger('JOYPAD', 'LAUNCHBUTTON2', 1);
     JoyQuitButton := IniFile.ReadInteger('JOYPAD', 'QUITBUTTON', 6);
     JoyLeftRightAxis := IniFile.ReadInteger('JOYPAD', 'LEFTRIGHTAXIS', 0);
     JoyAxisDeadZone := IniFile.ReadFloat('JOYPAD', 'LEFTRIGHTAXISDEADZONE', 0.5);
@@ -288,6 +290,7 @@ begin
     IniFile.WriteInteger('SETTINGS','LEFTKEY', LeftKey);
     IniFile.WriteInteger('SETTINGS','RIGHTKEY', RightKey);
     IniFile.WriteInteger('SETTINGS','LAUNCHKEY', LaunchKey);
+    IniFile.WriteInteger('SETTINGS','LAUNCHKEY2', LaunchKey2);
     IniFile.WriteInteger('SETTINGS','QUITKEY', QuitKey);
     IniFile.WriteString('SETTINGS', 'STARTPARAMS', StartParams);
     IniFile.WriteString('SETTINGS', 'PATH', Path);
@@ -310,6 +313,7 @@ begin
     IniFile.WriteInteger('JOYPAD', 'LEFTBUTTON', JoyLeftButton);
     IniFile.WriteInteger('JOYPAD', 'RIGHTBUTTON', JoyRightButton);
     IniFile.WriteInteger('JOYPAD', 'LAUNCHBUTTON', JoyLaunchButton);
+    IniFile.WriteInteger('JOYPAD', 'LAUNCHBUTTON2', JoyLaunchButton2);
     IniFile.WriteInteger('JOYPAD', 'QUITBUTTON', JoyQuitButton);
     IniFile.WriteInteger('JOYPAD', 'LEFTRIGHTAXIS', JoyLeftRightAxis);
     IniFile.WriteFloat('JOYPAD', 'LEFTRIGHTAXISDEADZONE', JoyAxisDeadZone);
@@ -624,7 +628,7 @@ begin
       if GetKeyState(VK_RMENU) < 0 then
         RealKey := VK_RMENU;
 
-  if (RealKey = LaunchKey) then
+  if (RealKey = LaunchKey) or (RealKey = LaunchKey2) then
     DoLaunch(FButtons[SelectedButton].Param);
 
   if RealKey = LeftKey then
@@ -784,8 +788,10 @@ begin
       Repaint;
     end;
 
-  if (JoyLaunchButton > -1) and (JoyLaunchButton < 32) then
-    if TJoyButton(JoyLaunchButton) in Buttons then
+  if ((JoyLaunchButton > -1) and (JoyLaunchButton < 32) and
+    (TJoyButton(JoyLaunchButton) in Buttons)) or
+    ((JoyLaunchButton2 > -1) and (JoyLaunchButton2 < 32) and
+    (TJoyButton(JoyLaunchButton2) in Buttons)) then
       DoLaunch(FButtons[SelectedButton].Param);
 
   if (JoyQuitButton > -1) and (JoyQuitButton < 32) then
