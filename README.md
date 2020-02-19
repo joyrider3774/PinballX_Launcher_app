@@ -116,6 +116,15 @@ Specifies the way the windows is kept in the foreground, 0 = nothing is done to 
 ### TITLE
 Title to be shown at the top of the program (Default = Pinball FX3 Launcher)
 
+### COLOR1
+Color in hexadecimal RGB format for selected button text. (Default = FFFFFF)
+
+### COLOR2
+Color in hexadecimal RGB format for not selected button text. (Default = 000000)
+
+### COLOR3
+Color in hexadecimal RGB format for title, credits and countdown text. (Default = FFFFFF)
+
 ## JOYPAD INI SETTINGS
 
 ### USEJOYPAD
