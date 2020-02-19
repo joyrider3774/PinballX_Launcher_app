@@ -73,6 +73,7 @@ type
     JoyPovLeftMin, JoyPovLeftMax, JoyPovRightMin, JoyPovRightMax: Single;
     JoyAxisMustRelease, JoyPovMustRelease, JoyPovSelection,
     JoyAxisSelection, JoyButtonSelection, RepositionWindow: Boolean;
+    Color1, Color2, Color3: TColor;
 
     procedure CMDialogKey(var msg: TCMDialogKey); message CM_DIALOGKEY;
     procedure DoLaunch(const aParams: String);
@@ -185,6 +186,22 @@ begin
 end;
 
 procedure TMainLauncherForm.LoadIni;
+
+function HexStringToColor(const value: string; defaultColor: TColor): TColor;
+begin
+  Result := defaultColor;
+  if Length(value) = 6 then
+  begin
+    try
+      //DW  delphi uses $BBGGRR
+      Result := RGB(StrToInt('$' + Copy(value, 1, 2)),
+       StrToInt('$' + Copy(value, 3, 2)),
+       StrToInt('$' + Copy(value, 5, 2)));
+    except
+    end;
+  end;
+end;
+
 var
   IniFile: TMemIniFile;
 begin
@@ -210,6 +227,9 @@ begin
     SmoothResizeDraw := IniFile.ReadBool('SETTINGS', 'SMOOTHRESIZEDRAW', True);
     Title := IniFile.ReadString('SETTINGS', 'TITLE', 'Pinball FX3 Launcher');
     FForceForeGroundWindow := IniFile.ReadInteger('SETTINGS', 'FORCEFOREGROUNDWINDOW', 0);
+    Color1 := HexStringToColor(IniFile.ReadString('SETTINGS', 'COLOR1', 'FFFFFF'), clWhite);
+    Color2 := HexStringToColor(IniFile.ReadString('SETTINGS', 'COLOR2', '000000'), clBlack);
+    Color3 := HexStringToColor(IniFile.ReadString('SETTINGS', 'COLOR3', 'FFFFFF'), clWhite);
 
     UseJoypad := IniFile.ReadBool('JOYPAD', 'USEJOYPAD', False);
     JoyLeftButton := IniFile.ReadInteger('JOYPAD', 'LEFTBUTTON', 4);
@@ -282,6 +302,17 @@ begin
 end;
 
 procedure TMainLauncherForm.SaveIni;
+
+function ColorToHex(const value: TColor): string;
+var
+  iColor: Integer;
+begin
+  iColor := ColorToRGB(value);
+  Result := IntToHex(GetRValue(iColor), 2) +
+    IntToHex(GetGValue(iColor), 2) +
+    IntToHex(GetBValue(iColor), 2);
+end;
+
 var
   IniFile: TMemIniFile;
 begin
@@ -308,6 +339,9 @@ begin
     IniFile.WriteInteger('SETTINGS', 'ROTATE', DoRotate);
     IniFile.WriteBool('SETTINGS', 'SMOOTHRESIZEDRAW', SmoothResizeDraw);
     IniFile.WriteInteger('SETTINGS', 'FORCEFOREGROUNDWINDOW', FForceForeGroundWindow);
+    IniFile.WriteString('SETTINGS', 'COLOR1', ColorToHex(Color1));
+    IniFile.WriteString('SETTINGS', 'COLOR2', ColorToHex(Color2));
+    IniFile.WriteString('SETTINGS', 'COLOR3', ColorToHex(Color3));
 
     IniFile.WriteBool('JOYPAD', 'USEJOYPAD', UseJoypad);
     IniFile.WriteInteger('JOYPAD', 'LEFTBUTTON', JoyLeftButton);
@@ -671,7 +705,7 @@ begin
 
   BitMapBuffer.Canvas.Font := Canvas.Font;
   BitMapBuffer.Canvas.Brush.Style := bsClear;
-  BitMapBuffer.Canvas.Font.Color := clWhite;
+  BitMapBuffer.Canvas.Font.Color := Color3;
   BitMapBuffer.Canvas.Font.PixelsPerInch := MulDiv(96, ScaleFontM, ScaleFontD);
 
   BitMapBuffer.Canvas.Font.Size := 17;
@@ -712,12 +746,12 @@ begin
         if button = SelectedButton then
         begin
           BitMapBuffer.Canvas.Draw(((ButtonSize + ButtonSpacing) * x) + ButtonStartxPos , ((ButtonSize + ButtonSpacing) * y) + ButtonStartyPos + ButtonVCenter, PngSelection);
-          BitMapBuffer.Canvas.Font.Color := clWhite;
+          BitMapBuffer.Canvas.Font.Color := Color1;
         end
         else
         begin
           BitMapBuffer.Canvas.Draw(((ButtonSize + ButtonSpacing) * x) + ButtonStartxPos , ((ButtonSize + ButtonSpacing) * y) + ButtonStartyPos + ButtonVCenter , PngNoSelection);
-          BitMapBuffer.Canvas.Font.Color := clBlack;
+          BitMapBuffer.Canvas.Font.Color := Color2;
         end;
 
         // + 2 for padding
