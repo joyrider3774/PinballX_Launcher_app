@@ -502,6 +502,9 @@ begin
 end;
 
 procedure TMainLauncherForm.DoLaunch(const aParams: string);
+var
+  Teller: Integer;
+  sParams: String;
 begin
   tmr1.Enabled := False;
   tmrJoypadEnable.Enabled := false;
@@ -514,9 +517,18 @@ begin
       'Try Adding ''Path'' value to Settings.ini manually ... Exiting...'), 'Error', MB_ICONERROR + MB_OK);
   end
   else
+  begin
+    sParams := '';
+    for Teller := 1 to ParamCount do
+    begin
+      sParams := sParams + '"' + ParamStr(Teller) + '"';
+      if Teller <> ParamCount then
+        sParams := sParams + ' ';
+    end;
     Shellexecute(GetDesktopWindow, 'open', PChar(Path),
-      PChar(Trim(Trim(StartParams + ' ' + aParams) + ' ' + ParamStr(1))),
+      PChar(Trim(Trim(StartParams + ' ' + sParams) + ' ' + aParams)),
       PChar(ExtractFilePath(Path)), SW_SHOWNORMAL);
+  end;
 end;
 
 procedure TMainLauncherForm.FormCreate(Sender: TObject);
