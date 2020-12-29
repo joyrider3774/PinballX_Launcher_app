@@ -4,7 +4,7 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 
 ![PinballX Launcher app](/images/launcher.png)
 
-[Latest Release](/releases/latest)
+[Latest Release](https://github.com/joyrider3774/PinballX_Launcher_app/releases/latest)
 
 ## Usage
 Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
