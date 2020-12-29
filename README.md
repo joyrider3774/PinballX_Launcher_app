@@ -4,6 +4,8 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 
 ![PinballX Launcher app](/images/launcher.png)
 
+[Latest Release](/releases/latest)
+
 ## Usage
 Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
 It should have created an ini file with the same name as the executable. By default it will generate settings for pinball FX3
