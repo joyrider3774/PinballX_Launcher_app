@@ -208,4 +208,7 @@ NLDJoystick created by Albert de Weerd (aka NGLN)
 https://www.nldelphi.com/showthread.php?29812-NLDJoystick
 http://svn.nldelphi.com/nldelphi/opensource/ngln/NLDJoystick/
 
+## Donations
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/joyrider3774)
+
 
