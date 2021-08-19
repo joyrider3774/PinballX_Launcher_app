@@ -7,7 +7,7 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 [Latest Release](https://github.com/joyrider3774/PinballX_Launcher_app/releases/latest)
 
 ## Other versions
-[Zaccaria Pinball Version](https://github.com/joyrider3774/PinballX_Launcher_app/other_games/Zaccaria%20Pinball)
+[Zaccaria Pinball Version](/other_games/Zaccaria%20Pinball)
 
 ## Usage
 Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
