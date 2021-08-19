@@ -5,7 +5,7 @@
 [Latest Release](https://github.com/joyrider3774/PinballX_Launcher_app/releases/latest)
 
 ## Usage
-Place the executable from the latest release in a directory you can remember, don't launch it yet. Download the [ZaccariaLauncher.ini](/other_games/Zaccaria Pinball/ZaccariaLauncher.ini) file
+Place the executable from the latest release in a directory you can remember, don't launch it yet. Download the [ZaccariaLauncher.ini](/other_games/Zaccaria%20Pinball/ZaccariaLauncher.ini) file
 and place it in the same directory as the executable. Then rename the launcher executable to ZaccariaLauncher.exe. 
 So that you have a ZaccariaLauncher.exe and the downloaded ZaccariaLauncher.ini file in the same directory. Then run the application once and 
 immediatly close it close the application using q key or alt + f4. 
