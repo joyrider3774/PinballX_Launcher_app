@@ -6,7 +6,7 @@
 
 ## Usage
 Place the executable from the latest release in a directory you can remember, don't launch it yet. Download the [ZaccariaLauncher.ini](/other_games/Zaccaria%20Pinball/ZaccariaLauncher.ini) file
-and place it in the same directory as the executable. Then rename the launcher executable to ZaccariaLauncher.exe. 
+and place it in the same directory as the executable. Then rename the "PinballFX3Launcher.exe" launcher executable to "ZaccariaLauncher.exe" . 
 So that you have a ZaccariaLauncher.exe and the downloaded ZaccariaLauncher.ini file in the same directory. Then run the application once and 
 immediatly close it close the application using q key or alt + f4. 
 It should have updated the ini file with all options and detected your steam installation. The app is setup to use q as the quit key, 
