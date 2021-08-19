@@ -1,15 +1,15 @@
 # Zaccaria Pinball Launcher app
 
-![Zaccaria Pinball Launcher app](/other_games/Zaccaria Pinball/launcher.png)
+![Zaccaria Pinball Launcher app](/other_games/Zaccaria%20Pinball/launcher.png)
 
 [Latest Release](https://github.com/joyrider3774/PinballX_Launcher_app/releases/latest)
 
 ## Usage
-Place the executable in a directory you can remember, don't launch it yet. Download the [ZaccariaLauncher.ini](/other_games/Zaccaria Pinball/ZaccariaLauncher.ini) file
+Place the executable from the latest release in a directory you can remember, don't launch it yet. Download the [ZaccariaLauncher.ini](/other_games/Zaccaria Pinball/ZaccariaLauncher.ini) file
 and place it in the same directory as the executable. Then rename the launcher executable to ZaccariaLauncher.exe. 
-So that you have a ZaccariaLauncher.exe and the downloaded ZaccariaLauncher.ini in the same directory. Then run the application once and 
+So that you have a ZaccariaLauncher.exe and the downloaded ZaccariaLauncher.ini file in the same directory. Then run the application once and 
 immediatly close it close the application using q key or alt + f4. 
-It should have updated the ini file with all options. The app is setup to use q as the quit key, 
+It should have updated the ini file with all options and detected your steam installation. The app is setup to use q as the quit key, 
 LEFT SHIFT to select previous button, RIGHT SHIFT to select next button and the RETURN / ENTER key to launch. You should choose the same
 keys for this app as the keys you are using in the PinballX frontend. If your cabinet is setup to use different keys, you can edit the 
 keys in the ini file under the "SETTINGS" section. You'll need to supply the following entries "LEFTKEY", "RIGHTKEY", "LAUNCHKEY" and "QUITKEY".
@@ -20,11 +20,10 @@ add them the to ini file.
 
 ![PinballX Settings](/images/showkeys.png)
 
-You will also need to change your PinballX Settings to start this launcher app instead of Pinball FX3 and supply as 
-the parameter needed to launch the selected table. The app expects only one parameter to be given and in Case of Zaccaria Pinball this is "[TABLEFILE]" including the quotes. 
-Extra supplied parameters are ignored
+You will also need to change your PinballX Settings to start this launcher app instead of Zaccaria Pinball and supply as 
+parameter the selected table to launch. The app expects only one parameter to be given and in Case of Zaccaria Pinball this is "[TABLEFILE]" including the quotes.
 
-![PinballX Settings](/other_games/Zaccaria Pinball/pinballxsetup.png)
+![PinballX Settings](/other_games/Zaccaria%20Pinball/pinballxsetup.png)
 
 once you got everything setup this launcher app will be launched instead of Zaccaria Pinball directly and you can choose the settings using your cabinet buttons,
 the app will then launch Zaccaria Pinball with the correct parameters for your selection. The app is by default setup to rotate itselve 270° that's
@@ -178,7 +177,7 @@ Maximum value of the POV to be registered as a left direction, Used in conjuncti
 ## ADVANCED INI SETTINGS
 If you make a copy of the executable and rename it and then start it again a seperate ini file will be created (same name as binary) using  same 
 default settings above, you can then use the following section to change the behaviour of this app to be used with other games than the 
-default Pinball FX3 settings or even outside pinballx. For example if you have other apps that can use parameter sets you like to select. You can configure
+default Zaccaria pinball settings or even outside pinballx. For example if you have other apps that can use parameter sets you like to select. You can configure
 up to 12 buttons each with it's own parameters. Each Button section consits of 3 values to be specifed..
 
 ### TEXT
