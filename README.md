@@ -9,6 +9,11 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 ## Other versions
 [Zaccaria Pinball Version](/other_games/Zaccaria%20Pinball)
 
+## Buy me a "koffie" if you feel like supporting 
+I do everything in my spare time for free, if you feel something aided you and you want to support me, you can always buy me a "koffie" as we say in dutch, no obligations whatsoever...
+
+<a href='https://ko-fi.com/Q5Q3BKI5S' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 ## Usage
 Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
 It should have created an ini file with the same name as the executable. By default it will generate settings for pinball FX3
@@ -210,8 +215,3 @@ NLDJoystick created by Albert de Weerd (aka NGLN)
 
 https://www.nldelphi.com/showthread.php?29812-NLDJoystick
 http://svn.nldelphi.com/nldelphi/opensource/ngln/NLDJoystick/
-
-## Donations
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/joyrider3774)
-
-
