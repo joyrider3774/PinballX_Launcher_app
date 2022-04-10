@@ -1,4 +1,6 @@
 # PinballX Launcher app
+![DownloadCountTotal](https://img.shields.io/github/downloads/joyrider3774/PinballX_Launcher_app/total?label=total%20downloads&style=plastic) ![DownloadCountLatest](https://img.shields.io/github/downloads/joyrider3774/PinballX_Launcher_app/latest/total?style=plastic) ![LatestVersion](https://img.shields.io/github/v/tag/joyrider3774/PinballX_Launcher_app?label=Latest%20version&style=plastic) ![License](https://img.shields.io/github/license/joyrider3774/PinballX_Launcher_app?style=plastic)
+
 A PinballX Launcher app to specify parameters for the launched application. 
 Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled by your pinball cabinet controls
 
