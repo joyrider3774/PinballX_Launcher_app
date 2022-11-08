@@ -10,6 +10,7 @@ Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled
 
 ## Other versions
 [Zaccaria Pinball Version](/other_games/Zaccaria%20Pinball)
+
 [Pinball FX Version](/other_games/Pinball%20FX)
 
 ## Buy me a "koffie" if you feel like supporting 
