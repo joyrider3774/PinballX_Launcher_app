@@ -1,19 +1,18 @@
-# PinballX Launcher app
-A PinballX Launcher app to specify parameters for the launched application. 
-Defaults to pinball FX3 classic / multiplayer hotseat selection to be controlled by your pinball cabinet controls
+# Pinball FX Launcher app (using Pinball FX Launchscript)
 
-![PinballX Launcher app](/images/launcher.png)
+![Pinball FX Launcher app](/other_games/Pinball%20FX/launcher.png)
 
 [Latest Release](https://github.com/joyrider3774/PinballX_Launcher_app/releases/latest)
 
-## Other versions
-[Zaccaria Pinball Version](/other_games/Zaccaria%20Pinball)
-[Pinball FX Version](/other_games/Pinball%20FX)
+## Extra DownLoad
+This setup makes use of the [pinball FX Launcher script](https://github.com/joyrider3774/PinballFXLauncher)! Be sure that setup is working before using this
 
 ## Usage
-Place the executable in a directory you can remember and launch it once. Then close the application using q key or alt + f4. 
-It should have created an ini file with the same name as the executable. By default it will generate settings for pinball FX3
-to be able to select multiplayer and classic mode options. The app is setup to use q as the quit key, 
+Place the executable from the latest release in a directory you can remember, don't launch it yet. Download the [PinballFXLauncher.ini](/other_games/Pinball%20FX/PinballFXLauncher.ini) file
+and place it in the same directory as the executable. Then rename the "PinballFX3Launcher.exe" launcher executable to "PinballFXLauncher.exe" . 
+So that you have a PinballFXLauncher.exe and the downloaded PinballFXLauncher.ini file in the same directory. Then run the application once and 
+immediatly close it close the application using q key or alt + f4. 
+It should have updated the ini file with all options and detected your steam installation. The app is setup to use q as the quit key, 
 LEFT SHIFT to select previous button, RIGHT SHIFT to select next button and the RETURN / ENTER key to launch. You should choose the same
 keys for this app as the keys you are using in the PinballX frontend. If your cabinet is setup to use different keys, you can edit the 
 keys in the ini file under the "SETTINGS" section. You'll need to supply the following entries "LEFTKEY", "RIGHTKEY", "LAUNCHKEY" and "QUITKEY".
@@ -24,14 +23,13 @@ add them the to ini file.
 
 ![PinballX Settings](/images/showkeys.png)
 
-You will also need to change your PinballX Settings to start this launcher app instead of Pinball FX3 and supply as 
-the parameter needed to launch the selected table. The app expects only one parameter to be given and in Case of Pinball FX3 this is "-table_[TABLEFILE]" including the quotes. 
-Extra supplied parameters are ignored
+You will also need to change your PinballX Settings to start this launcher app instead of Pinball FX (launcher script) and supply as 
+parameter the selected table to launch. The app expects only one parameter to be given and in Case of Pinball FX (launcher script) this is "[TABLEFILE]" including the quotes.
 
-![PinballX Settings](/images/pinballxsetup.png)
+![PinballX Settings](/other_games/Pinball%20FX/pinballxsetup.png)
 
-once you got everything setup this launcher app will be launched instead of Pinball FX3 directly and you can choose the settings using your cabinet buttons,
-the app will then launch pinball fx3 with the correct parameters for your selection. The app is by default setup to rotate itselve 270° that's
+once you got everything setup this launcher app will be launched instead of Pinball FX (launcher script) directly and you can choose the settings using your cabinet buttons,
+the app will then launch Pinball FX (launcher script) with the correct parameters for your selection. The app is by default setup to rotate itselve 270° that's
 basically how i think most cabinets are setup on the playfield, like landscape mode and letting pinballx rotate the screen. if your cabinet,
 is already running in portrait mode you need to edit the ini to not let the app rotate itselve. 
 The app screen is 800 x 600 default but there are options to increase or decrease this size by scalling it with a multiply and divide value 
@@ -182,7 +180,7 @@ Maximum value of the POV to be registered as a left direction, Used in conjuncti
 ## ADVANCED INI SETTINGS
 If you make a copy of the executable and rename it and then start it again a seperate ini file will be created (same name as binary) using  same 
 default settings above, you can then use the following section to change the behaviour of this app to be used with other games than the 
-default Pinball FX3 settings or even outside pinballx. For example if you have other apps that can use parameter sets you like to select. You can configure
+default Pinball FX (launcher script) settings or even outside pinballx. For example if you have other apps that can use parameter sets you like to select. You can configure
 up to 12 buttons each with it's own parameters. Each Button section consits of 3 values to be specifed..
 
 ### TEXT
