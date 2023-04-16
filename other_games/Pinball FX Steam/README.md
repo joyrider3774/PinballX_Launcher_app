@@ -1,4 +1,4 @@
-# Pinball FX Launcher app (using Pinball FX Launchscript) (EPIC Version)
+# Pinball FX Launcher app (using Pinball FX Launchscript) (STEAM Version)
 
 ![Pinball FX Launcher app](/other_games/Pinball%20FX/launcher.png)
 
